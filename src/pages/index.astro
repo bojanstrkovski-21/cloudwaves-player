@@ -1,11 +1,869 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="en" data-theme="wavelength">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArchBoki Player</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style is:global>
+    @font-face {
+      font-family: 'MesloNF';
+      src: url('/fonts/MESLOLGSNERDFONTPROPO-REGULAR.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    /* ── THEMES ─────────────────────────────────────────────────────── */
+    html[data-theme="wavelength"] {
+      --bg: #141c2a; --surface: #1d283a; --surface2: #2f394a; --border: #323846;
+      --accent: #c9e79a; --accent2: #82AAFF; --accent3: #09b2ad; --accent4: #cc9fe9;
+      --text: #f8fafc; --muted: #94a3b8; --glow: rgba(201,231,154,0.25);
+      --red: #cc0000; --orange: #e24400;
+      --grad1: rgba(201,231,154,.05); --grad2: rgba(130,170,255,.05); --grad3: rgba(204,159,233,.03);
+      --vinyl-c1:#141c2a; --vinyl-c2:#1d283a; --vinyl-c3:#2f394a;
+      --bar-bg: rgba(20,28,42,.97);
+    }
+    html[data-theme="everforest"] {
+      --bg: #2d363b; --surface: #343f44; --surface2: #3d484d; --border: #56635f;
+      --accent: #a7c080; --accent2: #83c092; --accent3: #dbbc7f;
+      --accent4: #d699b6; --accent5: #7fbbb3;
+      --red: #e67e80; --orange: #e69875;
+      --text: #d3c6aa; --muted: #859289; --glow: rgba(167,192,128,0.25);
+      --grad1: rgba(167,192,128,.05); --grad2: rgba(131,192,146,.04); --grad3: rgba(214,153,182,.03);
+      --vinyl-c1:#232a2e; --vinyl-c2:#3d484d; --vinyl-c3:#475258;
+      --bar-bg: rgba(45,54,59,.97);
+    }
+    /* ── BASE ───────────────────────────────────────────────────────── */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; transition:background .3s, color .3s; }
+    body::before {
+      content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+      background: radial-gradient(ellipse at 20% 20%, var(--grad1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, var(--grad2) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, var(--grad3) 0%, transparent 60%);
+      animation:bgPulse 8s ease-in-out infinite alternate; pointer-events:none; z-index:0;
+    }
+    @keyframes bgPulse { 0%{transform:rotate(0deg) scale(1)} 100%{transform:rotate(3deg) scale(1.05)} }
+    body::after {
+      content:''; position:fixed; top:0;left:0;right:0;bottom:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);
+      pointer-events:none; z-index:9999;
+    }
+    .container { max-width:1400px; margin:0 auto; padding:0 20px; position:relative; z-index:1; }
+
+    /* ── HEADER ─────────────────────────────────────────────────────── */
+    header { padding:24px 0 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+    .logo { font-family:'MesloNF','Space Mono',monospace; font-size:1.8rem; letter-spacing:4px; color:var(--text); }
+    .logo span { color:var(--accent); text-shadow:0 0 20px var(--glow); font-style:italic; }
+    .header-right { display:flex; align-items:center; gap:16px; }
+    .live-badge { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:.65rem; color:var(--accent2); letter-spacing:2px; }
+    .live-dot { width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 10px var(--accent2);animation:pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+    .theme-btn { padding:7px 14px; border-radius:20px; border:1px solid var(--border); font-family:'Space Mono',monospace; font-size:.65rem; letter-spacing:1px; cursor:pointer; color:var(--muted); background:none; transition:all .2s; }
+    .theme-btn:hover { color:var(--text); border-color:var(--accent); }
+
+    /* ── MAIN TABS ──────────────────────────────────────────────────── */
+    .tabs { display:flex; margin-top:20px; border-bottom:1px solid var(--border); }
+    .tab { padding:12px 28px; cursor:pointer; font-family:'Space Mono',monospace; font-size:.75rem; letter-spacing:2px; color:var(--muted); border:none; border-bottom:2px solid transparent; background:none; text-transform:uppercase; transition:all .2s; }
+    .tab:hover { color:var(--text); }
+    .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .main-content { padding:0 0 110px; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── SOURCE TABS (Stream tab) ───────────────────────────────────── */
+    .source-tabs { display:flex; gap:8px; margin:20px 0 16px; flex-wrap:wrap; }
+    .src-btn { padding:7px 16px; border-radius:20px; border:1px solid var(--border); font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:1px; cursor:pointer; color:var(--muted); background:none; transition:all .2s; display:flex; align-items:center; gap:7px; }
+    .src-btn:hover { color:var(--text); border-color:var(--muted); }
+    .src-btn.active { color:#fff; border-color:transparent; font-weight:700; }
+    .src-btn[data-src="youtube"].active { background:var(--red); box-shadow:0 0 14px rgba(200,0,0,.3); }
+    .src-btn[data-src="soundcloud"].active { background:var(--orange); box-shadow:0 0 14px rgba(230,100,0,.3); }
+
+    /* ── API NOTE ───────────────────────────────────────────────────── */
+    .api-note { font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);background:rgba(167,192,128,.07);border:1px solid rgba(167,192,128,.2);padding:8px 14px;border-radius:6px;margin-bottom:14px;line-height:1.6; }
+    .api-note a { color:var(--accent4);text-decoration:none; }
+    .api-note a:hover { text-decoration:underline; }
+
+    /* ── SEARCH ─────────────────────────────────────────────────────── */
+    .search-section { display:flex; gap:12px; margin-bottom:16px; }
+    .search-wrap { flex:1; position:relative; }
+    .search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+    .search-input { width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:12px 14px 12px 42px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none; transition:border-color .2s; }
+    .search-input:focus { border-color:var(--accent); }
+    .search-input::placeholder { color:var(--muted); }
+    .filter-select { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:12px 16px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.85rem; outline:none; cursor:pointer; min-width:140px; }
+    .filter-select option { background:var(--surface); }
+    .search-btn { background:var(--accent); color:var(--bg); border:none; padding:12px 24px; border-radius:8px; cursor:pointer; font-family:'Space Mono',monospace; font-size:.75rem; letter-spacing:1px; font-weight:700; transition:all .2s; white-space:nowrap; }
+    .search-btn:hover { filter:brightness(1.1); box-shadow:0 0 16px var(--glow); }
+
+    /* ── TAGS ───────────────────────────────────────────────────────── */
+    .quick-tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+    .tag { padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:.72rem; cursor:pointer; transition:all .2s; color:var(--muted); font-family:'Space Mono',monospace; letter-spacing:1px; background:none; }
+    .tag:hover,.tag.active { border-color:var(--accent); color:var(--accent); background:rgba(167,192,128,.08); }
+
+    /* ── SECTION HEADER ─────────────────────────────────────────────── */
+    .main-layout { display:grid; grid-template-columns:400px 1fr; gap:16px; padding-bottom:20px; }
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .section-title { font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:3px; color:var(--muted); text-transform:uppercase; }
+    .result-count { font-family:'Space Mono',monospace; font-size:.65rem; color:var(--muted); }
+
+    /* ── RADIO TAB ──────────────────────────────────────────────────── */
+    .stations-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+    .station-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:14px; position:relative; overflow:hidden; }
+    .station-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); opacity:0; transition:opacity .2s; }
+    .station-card:hover { border-color:var(--accent); background:var(--surface2); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .station-card:hover::before,.station-card.active-card::before { opacity:1; }
+    .station-card.active-card { border-color:var(--accent); background:var(--surface2); }
+    .station-logo { width:46px;height:46px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem; }
+    .station-logo img { width:100%;height:100%;object-fit:cover; }
+    .station-info { flex:1;overflow:hidden; }
+    .station-name { font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px; }
+    .station-meta { display:flex;gap:8px;align-items:center; }
+    .station-country { font-size:.7rem;color:var(--muted);font-family:'Space Mono',monospace; }
+    .station-bitrate { font-size:.62rem;color:var(--accent2);font-family:'Space Mono',monospace;background:rgba(130,170,255,.12);padding:1px 5px;border-radius:3px; }
+    .station-votes { font-size:.62rem;color:var(--muted);font-family:'Space Mono',monospace;margin-left:auto; }
+    .waveform { display:flex;gap:2px;align-items:center;height:16px; }
+    .waveform.hidden { display:none; }
+    .waveform span { width:2px;background:var(--accent);border-radius:1px;animation:waveBar .8s ease-in-out infinite; }
+    .waveform span:nth-child(2) { animation-delay:.1s; }
+    .waveform span:nth-child(3) { animation-delay:.2s; }
+    .waveform span:nth-child(4) { animation-delay:.05s; }
+    @keyframes waveBar { 0%,100%{height:3px} 50%{height:14px} }
+
+    /* ── LOCAL MUSIC TAB ────────────────────────────────────────────── */
+    .local-drop-zone { border:2px dashed var(--border); border-radius:12px; padding:40px 24px; text-align:center; cursor:pointer; transition:all .2s; margin-bottom:20px; }
+    .local-drop-zone:hover,.local-drop-zone.drag-over { border-color:var(--accent2); background:rgba(130,170,255,.05); }
+    .local-drop-zone-icon { font-size:2.8rem; margin-bottom:10px; opacity:.5; }
+    .local-drop-zone-text { font-family:'Space Mono',monospace; font-size:.72rem; color:var(--muted); letter-spacing:1px; line-height:1.8; }
+    .local-drop-zone-text strong { color:var(--accent2); }
+    .local-actions { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .local-btn { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:9px 18px; border-radius:8px; cursor:pointer; font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:1px; transition:all .2s; display:flex; align-items:center; gap:7px; }
+    .local-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+    .local-btn.danger:hover { border-color:var(--accent); color:var(--accent); }
+    .local-track-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden; }
+    .local-track-card::before { content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--accent2);opacity:0;transition:opacity .2s; }
+    .local-track-card:hover { border-color:rgba(130,170,255,.4);background:var(--surface2); }
+    .local-track-card:hover::before,.local-track-card.active-card::before { opacity:1; }
+    .local-track-card.active-card { border-color:rgba(130,170,255,.5);background:var(--surface2); }
+    .local-track-num { font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);width:24px;text-align:center;flex-shrink:0; }
+    .local-track-icon { width:38px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .local-track-details { flex:1;overflow:hidden; }
+    .local-track-name { font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .local-track-ext { font-family:'Space Mono',monospace;font-size:.62rem;color:var(--accent2);background:rgba(130,170,255,.12);padding:1px 5px;border-radius:3px;margin-top:3px;display:inline-block; }
+    .local-remove-btn { background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:4px;font-size:.85rem;transition:color .2s;flex-shrink:0; }
+    .local-remove-btn:hover { color:var(--accent); }
+
+    /* ── STREAM TAB ─────────────────────────────────────────────────── */
+    .results-panel { overflow-y:auto; max-height:calc(100vh - 310px); padding-right:4px; }
+    .results-panel::-webkit-scrollbar { width:4px; }
+    .results-panel::-webkit-scrollbar-track { background:var(--surface); border-radius:2px; }
+    .results-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+    .tracks-list { display:flex; flex-direction:column; gap:8px; }
+    .track-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden; }
+    .track-card::before { content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--accent2);opacity:0;transition:opacity .2s; }
+    .track-card:hover { border-color:rgba(131,192,146,.4);background:var(--surface2); }
+    .track-card:hover::before,.track-card.active-card::before { opacity:1; }
+    .track-card.active-card { border-color:rgba(131,192,146,.5);background:var(--surface2); }
+    .track-num { font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);width:22px;text-align:center;flex-shrink:0; }
+    .track-thumb { width:64px;height:46px;border-radius:6px;background:var(--surface2);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem; }
+    .track-thumb img { width:100%;height:100%;object-fit:cover; }
+    .track-details { flex:1;overflow:hidden; }
+    .track-title { font-size:.86rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .track-artist { font-size:.74rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .track-badge { font-size:.58rem;padding:2px 6px;border-radius:3px;font-family:'Space Mono',monospace;letter-spacing:.5px;flex-shrink:0; }
+    .badge-yt { color:var(--red);background:rgba(230,126,128,.12);border:1px solid rgba(230,126,128,.3); }
+    .badge-mc { color:#ff5500;background:rgba(255,85,0,.12);border:1px solid rgba(255,85,0,.3); }
+    .badge-ia { color:var(--accent3);background:rgba(131,192,146,.12);border:1px solid rgba(131,192,146,.3); }
+
+    .player-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+    .player-header { display:flex; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .player-header-label { font-family:'Space Mono',monospace; font-size:.6rem; letter-spacing:2px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .player-header-label span { color:var(--accent2); }
+    .player-iframe-wrap { position:relative; background:#1e2528; width:100%; overflow:hidden; flex-shrink:0; }
+    .player-iframe-wrap iframe { display:block; width:100%; aspect-ratio:16/9; border:none; }
+    .player-placeholder { width:100%; aspect-ratio:16/9; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:var(--muted); }
+    .player-placeholder-icon { font-size:3.5rem; opacity:.3; }
+    .player-placeholder-text { font-family:'Space Mono',monospace; font-size:.72rem; letter-spacing:2px; opacity:.5; }
+    .now-playing-bar { padding:12px 16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--surface2); }
+    .stream-vinyl { width:36px;height:36px;border-radius:50%;background:conic-gradient(from 0deg,var(--vinyl-c1),var(--vinyl-c2),var(--vinyl-c1),var(--vinyl-c3),var(--vinyl-c1));border:2px solid var(--border);flex-shrink:0;position:relative;animation:spin 4s linear infinite paused; }
+    .stream-vinyl.playing { animation-play-state:running; }
+    .stream-vinyl::after { content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--bg);border:1.5px solid var(--accent); }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .np-info { flex:1; overflow:hidden; }
+    .np-name { font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .np-source { font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px;margin-top:2px; }
+
+    /* ── BOTTOM PLAYER BAR ──────────────────────────────────────────── */
+    .player-bar { position:fixed;bottom:0;left:0;right:0;background:var(--bar-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);z-index:100;padding:14px 20px;transition:background .3s; }
+    .player-inner { max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px; }
+    .now-playing { display:flex;align-items:center;gap:14px;overflow:hidden; }
+    .vinyl { width:44px;height:44px;border-radius:50%;background:conic-gradient(from 0deg,var(--vinyl-c1),var(--vinyl-c2),var(--vinyl-c1),var(--vinyl-c3),var(--vinyl-c1));border:2px solid var(--border);flex-shrink:0;position:relative;animation:spin 4s linear infinite paused; }
+    .vinyl.playing { animation-play-state:running; }
+    .vinyl::after { content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--bg);border:1.5px solid var(--accent); }
+    .track-info { overflow:hidden; }
+    .track-name { font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .track-source { font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px;margin-top:2px; }
+    .player-controls { display:flex;align-items:center;gap:16px; }
+    .ctrl-btn { background:none;border:none;cursor:pointer;color:var(--muted);transition:all .2s;padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center; }
+    .ctrl-btn:hover { color:var(--text); }
+    .ctrl-btn.play-btn { width:42px;height:42px;background:var(--accent);color:var(--bg);box-shadow:0 0 20px var(--glow); }
+    .ctrl-btn.play-btn:hover { filter:brightness(1.1);box-shadow:0 0 30px var(--glow);transform:scale(1.05); }
+    .vol-wrap { display:flex;align-items:center;gap:10px;justify-content:flex-end; }
+    .vol-icon { color:var(--muted); }
+    input[type=range] { -webkit-appearance:none;width:90px;height:3px;background:var(--border);border-radius:3px;outline:none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 6px var(--glow); }
+
+    /* ── LOADING / EMPTY / TOAST ────────────────────────────────────── */
+    .loading { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px; }
+    .loading-wave { display:flex;gap:4px;align-items:flex-end;height:32px; }
+    .loading-wave span { width:4px;background:var(--accent);border-radius:2px;animation:wave 1s ease-in-out infinite; }
+    .loading-wave span:nth-child(2) { animation-delay:.1s;background:var(--accent2); }
+    .loading-wave span:nth-child(3) { animation-delay:.2s; }
+    .loading-wave span:nth-child(4) { animation-delay:.3s;background:var(--accent2); }
+    .loading-wave span:nth-child(5) { animation-delay:.4s; }
+    @keyframes wave { 0%,100%{height:8px} 50%{height:28px} }
+    .loading-text { font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);letter-spacing:2px; }
+    .empty-state { text-align:center;padding:60px 20px;color:var(--muted); }
+    .empty-icon { font-size:3rem;margin-bottom:12px;opacity:.4; }
+    .empty-text { font-size:.85rem;line-height:1.6; }
+    .toast { position:fixed;top:20px;right:20px;background:var(--surface2);border:1px solid var(--border);padding:12px 18px;border-radius:8px;font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:1px;z-index:200;transform:translateX(120%);transition:transform .3s ease;max-width:300px; }
+    .toast.show { transform:translateX(0); }
+    .toast.error { border-color:var(--red);color:var(--red); }
+    .toast.success { border-color:var(--accent2);color:var(--accent2); }
+    .toast.info { border-color:var(--accent);color:var(--accent); }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────────────── */
+    @media (max-width:900px) {
+      .main-layout { grid-template-columns:1fr; }
+      .results-panel { max-height:45vh; }
+    }
+    @media (max-width:600px) {
+      .player-inner { grid-template-columns:1fr auto; }
+      .vol-wrap { display:none; }
+      .stations-grid { grid-template-columns:1fr; }
+      .search-section { flex-wrap:wrap; }
+      .logo { font-size:1.4rem; }
+      .tabs { overflow-x:auto; }
+      .tab { padding:10px 16px; font-size:.65rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">CLOUD<span>WAVES</span></div>
+    <div class="header-right">
+      <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()">🎨 EVERFOREST</button>
+      <div class="live-badge"><div class="live-dot"></div>MUSIC PLAYER</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="radio">📡 Radio</button>
+    <button class="tab" data-tab="music">🎵 Music</button>
+    <button class="tab" data-tab="stream">🎬 Stream</button>
+  </div>
+
+  <div class="main-content" id="main-content">
+
+    <!-- ── RADIO TAB ── -->
+    <div id="tab-radio" class="tab-panel active">
+      <div style="height:20px"></div>
+      <div class="search-section">
+        <div class="search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="radio-search" class="search-input" type="text" placeholder="Search stations, genres, countries..." onkeydown="if(event.key==='Enter')searchRadio()">
+        </div>
+        <select id="radio-country" class="filter-select">
+          <option value="">🌍 All Countries</option>
+          <option value="MK">🇲🇰 Macedonia</option>
+          <option value="US">🇺🇸 United States</option>
+          <option value="GB">🇬🇧 United Kingdom</option>
+          <option value="DE">🇩🇪 Germany</option>
+          <option value="FR">🇫🇷 France</option>
+          <option value="JP">🇯🇵 Japan</option>
+          <option value="BR">🇧🇷 Brazil</option>
+          <option value="IT">🇮🇹 Italy</option>
+          <option value="ES">🇪🇸 Spain</option>
+          <option value="AU">🇦🇺 Australia</option>
+          <option value="CA">🇨🇦 Canada</option>
+          <option value="RU">🇷🇺 Russia</option>
+          <option value="IN">🇮🇳 India</option>
+          <option value="TR">🇹🇷 Turkey</option>
+          <option value="RS">🇷🇸 Serbia</option>
+          <option value="HR">🇭🇷 Croatia</option>
+          <option value="BG">🇧🇬 Bulgaria</option>
+          <option value="GR">🇬🇷 Greece</option>
+        </select>
+        <button class="search-btn" onclick="searchRadio()">SEARCH</button>
+      </div>
+      <div class="quick-tags" id="radio-tags">
+        <div class="tag active" onclick="radioTagClick(this,'')">ALL</div>
+        <div class="tag" onclick="radioTagClick(this,'pop')">POP</div>
+        <div class="tag" onclick="radioTagClick(this,'rock')">ROCK</div>
+        <div class="tag" onclick="radioTagClick(this,'jazz')">JAZZ</div>
+        <div class="tag" onclick="radioTagClick(this,'classical')">CLASSICAL</div>
+        <div class="tag" onclick="radioTagClick(this,'electronic')">ELECTRONIC</div>
+        <div class="tag" onclick="radioTagClick(this,'hip-hop')">HIP-HOP</div>
+        <div class="tag" onclick="radioTagClick(this,'news')">NEWS</div>
+        <div class="tag" onclick="radioTagClick(this,'folk')">FOLK</div>
+        <div class="tag" onclick="radioTagClick(this,'metal')">METAL</div>
+        <div class="tag" onclick="radioTagClick(this,'reggae')">REGGAE</div>
+        <div class="tag" onclick="radioTagClick(this,'ambient')">AMBIENT</div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">STATIONS</div>
+        <div class="result-count" id="radio-count"></div>
+      </div>
+      <div id="radio-results">
+        <div class="loading"><div class="loading-wave"><span></span><span></span><span></span><span></span><span></span></div><div class="loading-text">TUNING IN...</div></div>
+      </div>
+    </div>
+
+    <!-- ── MUSIC TAB ── -->
+    <div id="tab-music" class="tab-panel">
+      <div style="height:20px"></div>
+      <div class="local-drop-zone" id="local-drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="local-drop-zone-icon">🎵</div>
+        <div class="local-drop-zone-text">
+          <strong>Click to pick files</strong> or drag &amp; drop audio files here<br>
+          Supports MP3, FLAC, OGG, WAV, M4A, AAC and more
+        </div>
+      </div>
+      <input type="file" id="file-input" multiple accept="audio/*" style="display:none">
+      <input type="file" id="folder-input" multiple {...{"webkitdirectory": ""}} accept="audio/*" style="display:none">
+      <div class="local-actions">
+        <button class="local-btn" onclick="document.getElementById('file-input').click()">➕ Add Files</button>
+        <button class="local-btn" onclick="document.getElementById('folder-input').click()">📁 Open Folder</button>
+        <button class="local-btn danger" onclick="clearLocalPlaylist()" style="margin-left:auto">🗑 Clear All</button>
+      </div>
+      <div class="section-header">
+        <div class="section-title">PLAYLIST</div>
+        <div class="result-count" id="local-count"></div>
+      </div>
+      <div id="local-playlist">
+        <div class="empty-state"><div class="empty-icon">📂</div><div class="empty-text">No files loaded yet.<br>Click "Add Files" or drag audio files here.</div></div>
+      </div>
+    </div>
+
+    <!-- ── STREAM TAB ── -->
+    <div id="tab-stream" class="tab-panel">
+      <div style="height:20px"></div>
+      <div class="source-tabs">
+        <button class="src-btn active" data-src="youtube" id="ytBtn">▶ YouTube</button>
+        <button class="src-btn" data-src="mixcloud" id="mcBtn">🎧 Mixcloud</button>
+        <button class="src-btn" data-src="archive" id="iaBtn">🏛 Archive</button>
+        <button class="src-btn" id="scBtn">☁ SoundCloud</button>
+        <button class="src-btn" id="spBtn">🎵 Spotify</button>
+        <button class="src-btn" id="ytmBtn">🎶 YT Music</button>
+      </div>
+      <div id="api-note-yt" class="api-note">
+        🔴 Searching YouTube via the <strong>YouTube Data API</strong>. Click any result to play it in the embedded player.
+      </div>
+      <div id="api-note-mc" class="api-note" style="display:none">
+        🎧 <strong>Mixcloud</strong> — DJ sets, mixes, and radio shows. No account needed. Click any result to embed and play.
+      </div>
+      <div id="api-note-ia" class="api-note" style="display:none">
+        🏛 <strong>Internet Archive</strong> — free, public domain audio: concerts, old radio, classical, spoken word. No account needed.
+      </div>
+      <div class="search-section">
+        <div class="search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stream-search" class="search-input" type="text" placeholder="Search music, artist, song...">
+        </div>
+        <button id="streamSearchBtn" class="search-btn">SEARCH</button>
+      </div>
+      <div class="quick-tags" id="genre-tags">
+        <div class="tag active" data-genre="">ALL</div>
+        <div class="tag" data-genre="ambient music">AMBIENT</div>
+        <div class="tag" data-genre="electronic music">ELECTRONIC</div>
+        <div class="tag" data-genre="jazz music">JAZZ</div>
+        <div class="tag" data-genre="classical music">CLASSICAL</div>
+        <div class="tag" data-genre="rock music">ROCK</div>
+        <div class="tag" data-genre="hip hop music">HIP-HOP</div>
+        <div class="tag" data-genre="lofi music">LO-FI</div>
+        <div class="tag" data-genre="indie music">INDIE</div>
+        <div class="tag" data-genre="folk music">FOLK</div>
+      </div>
+      <div class="main-layout">
+        <div>
+          <div class="section-header">
+            <div class="section-title" id="results-title">RESULTS</div>
+            <div class="result-count" id="stream-result-count"></div>
+          </div>
+          <div class="results-panel" id="stream-results">
+            <div class="empty-state">
+              <div class="empty-icon">🎵</div>
+              <div class="empty-text">Search for music above,<br>or tap a genre tag to browse.</div>
+            </div>
+          </div>
+        </div>
+        <div class="player-panel">
+          <div class="player-header">
+            <div class="player-header-label">NOW PLAYING — <span id="player-source-label">SELECT A TRACK</span></div>
+          </div>
+          <div class="player-iframe-wrap" id="player-wrap">
+            <div class="player-placeholder">
+              <div class="player-placeholder-icon">🎧</div>
+              <div class="player-placeholder-text">NOTHING PLAYING</div>
+            </div>
+          </div>
+          <div class="now-playing-bar">
+            <div class="stream-vinyl" id="stream-vinyl"></div>
+            <div class="np-info">
+              <div class="np-name" id="np-name">Nothing playing</div>
+              <div class="np-source" id="np-source">SELECT A TRACK TO START</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.main-content -->
+</div><!-- /.container -->
+
+<!-- BOTTOM PLAYER BAR (Radio + Music tabs) -->
+<div class="player-bar" id="player-bar">
+  <div class="player-inner">
+    <div class="now-playing">
+      <div class="vinyl" id="vinyl"></div>
+      <div class="track-info">
+        <div class="track-name" id="player-name">Nothing playing</div>
+        <div class="track-source" id="player-source">SELECT A STATION OR TRACK</div>
+      </div>
+    </div>
+    <div class="player-controls">
+      <button class="ctrl-btn" onclick="skipPrev()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+      </button>
+      <button class="ctrl-btn play-btn" onclick="togglePlay()">
+        <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="skipNext()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+    <div class="vol-wrap">
+      <svg class="vol-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <input type="range" id="vol-slider" min="0" max="1" step="0.02" value="0.8" oninput="setVolume(this.value)">
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<audio id="audio-player" preload="none"></audio>
+
+<script is:inline>
+  // ── THEME TOGGLE ───────────────────────────────────────────────────────────
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'wavelength' ? 'everforest' : 'wavelength';
+    html.setAttribute('data-theme', next);
+    document.getElementById('theme-toggle').textContent =
+      next === 'wavelength' ? '🎨 EVERFOREST' : '🎨 WAVELENGTH';
+  }
+
+  // ── TAB SWITCHING ──────────────────────────────────────────────────────────
+  let currentTab = 'radio';
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab)?.classList.add('active');
+    document.getElementById('main-content').style.paddingBottom = tab === 'stream' ? '20px' : '110px';
+  }
+
+  // ── AUDIO STATE ────────────────────────────────────────────────────────────
+  const audio = document.getElementById('audio-player');
+  let currentIndex = -1, playlist = [], isPlaying = false;
+  let activeRadioTag = '';
+  let localPlaylist = [], localIndex = -1;
+
+  // ── LOCAL FILES ────────────────────────────────────────────────────────────
+  function addLocalFiles(fileList) {
+    const audio_exts = /\.(mp3|flac|ogg|wav|m4a|aac|opus|wma|aiff|alac)$/i;
+    const files = Array.from(fileList).filter(f => f.type.startsWith('audio/') || audio_exts.test(f.name));
+    files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+    files.forEach(f => {
+      const url = URL.createObjectURL(f);
+      const ext = (f.name.split('.').pop() || '').toUpperCase();
+      const name = f.name.replace(/\.[^.]+$/, '');
+      localPlaylist.push({name, url, ext});
+    });
+    renderLocalPlaylist();
+  }
+  function renderLocalPlaylist() {
+    const container = document.getElementById('local-playlist');
+    document.getElementById('local-count').textContent = localPlaylist.length ? localPlaylist.length + ' track' + (localPlaylist.length === 1 ? '' : 's') : '';
+    if (!localPlaylist.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-text">No files loaded yet.<br>Click \u201cAdd Files\u201d or drag audio files here.</div></div>';
+      return;
+    }
+    const list = document.createElement('div');
+    list.className = 'tracks-list';
+    localPlaylist.forEach((t, i) => {
+      const card = document.createElement('div');
+      card.className = 'local-track-card';
+      card.id = 'local-' + i;
+      if (i === localIndex) card.classList.add('active-card');
+      card.onclick = e => { if (!e.target.closest('.local-remove-btn')) playLocalTrack(i); };
+      card.innerHTML = `<div class="local-track-num">${i + 1}</div><div class="local-track-icon">🎵</div><div class="local-track-details"><div class="local-track-name">${escHtml(t.name)}</div><span class="local-track-ext">${escHtml(t.ext)}</span></div><button class="local-remove-btn" title="Remove">\u00d7</button>`;
+      card.querySelector('.local-remove-btn').addEventListener('click', e => { e.stopPropagation(); removeLocalTrack(i); });
+      list.appendChild(card);
+    });
+    container.innerHTML = '';
+    container.appendChild(list);
+  }
+  function playLocalTrack(index) {
+    const t = localPlaylist[index];
+    if (!t) return;
+    localIndex = index;
+    document.querySelectorAll('.local-track-card').forEach(c => c.classList.remove('active-card'));
+    document.getElementById('local-' + index)?.classList.add('active-card');
+    setAudio(t.url, t.name, '\uD83C\uDFB5 LOCAL FILE \u00B7 ' + t.ext);
+  }
+  function removeLocalTrack(index) {
+    URL.revokeObjectURL(localPlaylist[index].url);
+    localPlaylist.splice(index, 1);
+    if (localIndex === index) {
+      audio.pause(); audio.src = ''; localIndex = -1; isPlaying = false; updatePlayBtn();
+      document.getElementById('vinyl').classList.remove('playing');
+      document.getElementById('player-name').textContent = 'Nothing playing';
+      document.getElementById('player-source').textContent = 'SELECT A STATION OR TRACK';
+    } else if (localIndex > index) { localIndex--; }
+    renderLocalPlaylist();
+  }
+  function clearLocalPlaylist() {
+    if (!localPlaylist.length) return;
+    localPlaylist.forEach(t => URL.revokeObjectURL(t.url));
+    localPlaylist = []; localIndex = -1;
+    audio.pause(); audio.src = ''; isPlaying = false; updatePlayBtn();
+    document.getElementById('vinyl').classList.remove('playing');
+    document.getElementById('player-name').textContent = 'Nothing playing';
+    document.getElementById('player-source').textContent = 'SELECT A STATION OR TRACK';
+    renderLocalPlaylist();
+  }
+  function setupLocalFileInputs() {
+    document.getElementById('file-input').addEventListener('change', e => { addLocalFiles(e.target.files); e.target.value = ''; });
+    document.getElementById('folder-input').addEventListener('change', e => { addLocalFiles(e.target.files); e.target.value = ''; });
+    const zone = document.getElementById('local-drop-zone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); addLocalFiles(e.dataTransfer.files); });
+    const tab = document.getElementById('tab-music');
+    tab.addEventListener('dragover', e => e.preventDefault());
+    tab.addEventListener('drop', e => { e.preventDefault(); addLocalFiles(e.dataTransfer.files); });
+  }
+
+  // ── RADIO ──────────────────────────────────────────────────────────────────
+  let RADIO_SRVS = ['https://de1.api.radio-browser.info', 'https://nl1.api.radio-browser.info', 'https://at1.api.radio-browser.info'];
+  async function initRadioServers() {
+    try {
+      const r = await fetch('https://all.api.radio-browser.info/json/servers', {signal: AbortSignal.timeout(5000)});
+      if (r.ok) {
+        const list = await r.json();
+        if (list.length) RADIO_SRVS = list.map(s => 'https://' + s.name);
+      }
+    } catch { /* keep defaults */ }
+  }
+  async function searchRadio(tag) {
+    const query = document.getElementById('radio-search').value.trim();
+    const country = document.getElementById('radio-country').value;
+    const genre = tag !== undefined ? tag : activeRadioTag;
+    showLoading('radio-results', 'TUNING IN...');
+    const params = new URLSearchParams({limit: 40, hidebroken: true, order: 'votes', reverse: true});
+    if (country) params.set('countrycode', country);
+    if (genre) params.set('tag', genre);
+    const path = query
+      ? '/json/stations/search?name=' + encodeURIComponent(query) + '&' + params
+      : (genre || country) ? '/json/stations/search?' + params : '/json/stations/topvote/40';
+    for (const srv of RADIO_SRVS) {
+      try {
+        const r = await fetch(srv + path, {signal: AbortSignal.timeout(8000)});
+        if (!r.ok) continue;
+        renderRadio(await r.json()); return;
+      } catch { /* try next */ }
+    }
+    showEmpty('radio-results', '📡', 'Could not reach Radio Browser API.\nCheck your connection.');
+  }
+  function renderRadio(stations) {
+    playlist = stations;
+    document.getElementById('radio-count').textContent = stations.length + ' stations';
+    if (!stations.length) { showEmpty('radio-results', '📡', 'No stations found. Try a different search.'); return; }
+    const grid = document.createElement('div');
+    grid.className = 'stations-grid';
+    stations.forEach((s, i) => {
+      const flag = s.countrycode ? getFlagEmoji(s.countrycode) : '🌍';
+      const card = document.createElement('div');
+      card.className = 'station-card'; card.id = 'station-' + i;
+      card.onclick = () => playRadio(i);
+      card.innerHTML = `<div class="station-logo">${s.favicon ? '<img src="' + escHtml(s.favicon) + '" onerror="this.parentElement.innerHTML=\'📻\'" alt="">' : '📻'}</div><div class="station-info"><div class="station-name">${escHtml(s.name)}</div><div class="station-meta"><span class="station-country">${flag} ${escHtml(s.country || s.countrycode || 'Unknown')}</span>${s.bitrate ? '<span class="station-bitrate">' + s.bitrate + 'k</span>' : ''}<span class="station-votes">▲ ${s.votes || 0}</span></div></div><div class="waveform hidden" id="wave-${i}"><span></span><span></span><span></span><span></span></div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('radio-results').innerHTML = '';
+    document.getElementById('radio-results').appendChild(grid);
+  }
+  function playRadio(index) {
+    const s = playlist[index];
+    if (!s?.url_resolved) { showToast('No stream URL available', 'error'); return; }
+    document.querySelectorAll('.station-card').forEach(c => c.classList.remove('active-card'));
+    document.getElementById('station-' + index)?.classList.add('active-card');
+    document.querySelectorAll('.waveform').forEach(w => w.classList.add('hidden'));
+    document.getElementById('wave-' + index)?.classList.remove('hidden');
+    currentIndex = index;
+    setAudio(s.url_resolved, s.name, '\uD83D\uDCE1 LIVE RADIO \u00B7 ' + (s.country || s.countrycode || 'WORLDWIDE'));
+  }
+
+  // ── AUDIO CONTROLS ─────────────────────────────────────────────────────────
+  function setAudio(src, name, source) {
+    audio.src = src;
+    audio.volume = parseFloat(document.getElementById('vol-slider').value);
+    audio.play().then(() => {
+      isPlaying = true; updatePlayBtn();
+      document.getElementById('vinyl').classList.add('playing');
+      document.getElementById('player-name').textContent = name;
+      document.getElementById('player-source').textContent = source;
+    }).catch(() => showToast('Stream unavailable or blocked by browser', 'error'));
+  }
+  function togglePlay() {
+    if (!audio.src) return;
+    if (audio.paused) {
+      audio.play().then(() => { isPlaying = true; updatePlayBtn(); document.getElementById('vinyl').classList.add('playing'); }).catch(() => {});
+    } else {
+      audio.pause(); isPlaying = false; updatePlayBtn(); document.getElementById('vinyl').classList.remove('playing');
+    }
+  }
+  function skipNext() {
+    if (currentTab === 'radio') { if (!playlist.length) return; playRadio((currentIndex + 1) % playlist.length); }
+    else if (currentTab === 'music') { if (!localPlaylist.length) return; playLocalTrack(localIndex + 1 >= localPlaylist.length ? 0 : localIndex + 1); }
+  }
+  function skipPrev() {
+    if (currentTab === 'radio') { if (!playlist.length) return; playRadio((currentIndex - 1 + playlist.length) % playlist.length); }
+    else if (currentTab === 'music') { if (!localPlaylist.length) return; playLocalTrack(localIndex - 1 < 0 ? localPlaylist.length - 1 : localIndex - 1); }
+  }
+  function setVolume(v) { audio.volume = v; }
+  function updatePlayBtn() {
+    document.getElementById('play-icon').innerHTML = isPlaying
+      ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+      : '<path d="M8 5v14l11-7z"/>';
+  }
+  audio.addEventListener('ended', skipNext);
+
+  // ── STREAM TAB — YouTube / SoundCloud ─────────────────────────────────────
+  const API_KEY = "AIzaSyDTCcAyJx3Wz98PN3gl7F3I2_j55zGRTuQ";
+  let currentSource = "youtube";
+  let activeGenre = "";
+
+  document.getElementById("ytBtn").onclick = () => setSource("youtube");
+  document.getElementById("mcBtn").onclick = () => setSource("mixcloud");
+  document.getElementById("iaBtn").onclick = () => setSource("archive");
+  document.getElementById("scBtn").onclick = () => window.open("https://soundcloud.com", "_blank", "noopener,noreferrer");
+  document.getElementById("spBtn").onclick = () => window.open("https://open.spotify.com", "_blank", "noopener,noreferrer");
+  document.getElementById("ytmBtn").onclick = () => window.open("https://music.youtube.com", "_blank", "noopener,noreferrer");
+  function setSource(src) {
+    currentSource = src;
+    document.getElementById("ytBtn").classList.toggle("active", src === "youtube");
+    document.getElementById("mcBtn").classList.toggle("active", src === "mixcloud");
+    document.getElementById("iaBtn").classList.toggle("active", src === "archive");
+    document.getElementById("api-note-yt").style.display = src === "youtube" ? "" : "none";
+    document.getElementById("api-note-mc").style.display = src === "mixcloud" ? "" : "none";
+    document.getElementById("api-note-ia").style.display = src === "archive" ? "" : "none";
+    const placeholders = {youtube:"Search music, artist, song...", mixcloud:"Search DJ sets, mixes, radio shows...", archive:"Search concerts, radio, classical, spoken word..."};
+    document.getElementById("stream-search").placeholder = placeholders[src] || "Search...";
+    document.getElementById("stream-results").innerHTML = '<div class="empty-state"><div class="empty-icon">🎵</div><div class="empty-text">Search for music above,<br>or tap a genre tag to browse.</div></div>';
+    document.getElementById("stream-result-count").textContent = "";
+    const titles = {youtube:"YOUTUBE RESULTS", mixcloud:"MIXCLOUD", archive:"INTERNET ARCHIVE"};
+    document.getElementById("results-title").textContent = titles[src] || "RESULTS";
+  }
+
+  document.getElementById("stream-search").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+  document.getElementById("streamSearchBtn").onclick = doSearch;
+  document.querySelectorAll("#genre-tags .tag").forEach(tag => {
+    tag.onclick = () => {
+      document.querySelectorAll("#genre-tags .tag").forEach(t => t.classList.remove("active"));
+      tag.classList.add("active");
+      activeGenre = tag.dataset.genre;
+      doSearch();
+    };
+  });
+
+  function doSearch() {
+    const q = document.getElementById("stream-search").value.trim();
+    const term = [q, activeGenre].filter(Boolean).join(" ");
+    if (!term) return;
+    if (currentSource === "archive") searchInternetArchive(term);
+    else if (currentSource === "mixcloud") searchMixcloud(term);
+    else searchYouTube(term);
+  }
+  async function searchYouTube(q) {
+    showLoading("stream-results", "SEARCHING...");
+    document.getElementById("stream-result-count").textContent = "";
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(q)}&key=${API_KEY}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      renderYouTubeResults(data.items || []);
+    } catch(e) {
+      showEmpty("stream-results", "⚠️", "YouTube search failed.\n" + (e.message || "Check your connection."));
+    }
+  }
+  function renderYouTubeResults(items) {
+    document.getElementById("stream-result-count").textContent = items.length + " results";
+    document.getElementById("results-title").textContent = "YOUTUBE RESULTS";
+    if (!items.length) { showEmpty("stream-results", "🔍", "No results found. Try a different search."); return; }
+    const list = document.createElement("div");
+    list.className = "tracks-list";
+    items.forEach((item, i) => {
+      const card = document.createElement("div");
+      card.className = "track-card"; card.id = "track-" + i;
+      const thumb = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
+      card.innerHTML = `<div class="track-num">${i + 1}</div><div class="track-thumb">${thumb ? '<img src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'" alt="">' : "🎬"}</div><div class="track-details"><div class="track-title">${escHtml(item.snippet.title)}</div><div class="track-artist">${escHtml(item.snippet.channelTitle)}</div></div><span class="track-badge badge-yt">YT</span>`;
+      card.onclick = () => playYouTube(item, i);
+      list.appendChild(card);
+    });
+    document.getElementById("stream-results").innerHTML = "";
+    document.getElementById("stream-results").appendChild(list);
+  }
+  function playYouTube(item, index) {
+    document.querySelectorAll(".track-card").forEach(c => c.classList.remove("active-card"));
+    document.getElementById("track-" + index)?.classList.add("active-card");
+    const vid = item.id.videoId;
+    document.getElementById("player-source-label").textContent = escHtml(item.snippet.title);
+    document.getElementById("np-name").textContent = item.snippet.title;
+    document.getElementById("np-source").textContent = "▶ YOUTUBE · " + item.snippet.channelTitle;
+    document.getElementById("stream-vinyl").classList.add("playing");
+    document.getElementById("player-wrap").innerHTML = `<iframe style="display:block;width:100%;aspect-ratio:16/9;border:none;" src="https://www.youtube.com/embed/${vid}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  }
+  async function searchMixcloud(q) {
+    showLoading("stream-results", "SEARCHING MIXCLOUD...");
+    document.getElementById("stream-result-count").textContent = "";
+    try {
+      const res = await fetch(`https://api.mixcloud.com/search/?q=${encodeURIComponent(q)}&type=cloudcast&limit=20`, {signal: AbortSignal.timeout(10000)});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderMixcloudResults(data.data || []);
+    } catch(e) {
+      showEmpty("stream-results", "⚠️", "Mixcloud search failed.\n" + (e.message || "Check your connection."));
+    }
+  }
+  function renderMixcloudResults(items) {
+    document.getElementById("stream-result-count").textContent = items.length + " results";
+    document.getElementById("results-title").textContent = "MIXCLOUD";
+    if (!items.length) { showEmpty("stream-results", "🔍", "No results found. Try a different search."); return; }
+    const list = document.createElement("div");
+    list.className = "tracks-list";
+    items.forEach((item, i) => {
+      const card = document.createElement("div");
+      card.className = "track-card"; card.id = "track-" + i;
+      const thumb = item.pictures?.medium || item.pictures?.small || "";
+      card.innerHTML = `<div class="track-num">${i + 1}</div><div class="track-thumb">${thumb ? '<img src="' + escHtml(thumb) + '" onerror="this.parentElement.innerHTML=\'🎧\'" alt="">' : "🎧"}</div><div class="track-details"><div class="track-title">${escHtml(item.name)}</div><div class="track-artist">${escHtml(item.user?.name || item.user?.username || "Mixcloud")}</div></div><span class="track-badge badge-mc">MC</span>`;
+      card.onclick = () => playMixcloud(item, i);
+      list.appendChild(card);
+    });
+    document.getElementById("stream-results").innerHTML = "";
+    document.getElementById("stream-results").appendChild(list);
+  }
+  function playMixcloud(item, index) {
+    document.querySelectorAll(".track-card").forEach(c => c.classList.remove("active-card"));
+    document.getElementById("track-" + index)?.classList.add("active-card");
+    document.getElementById("player-source-label").textContent = escHtml(item.name);
+    document.getElementById("np-name").textContent = item.name;
+    document.getElementById("np-source").textContent = "🎧 MIXCLOUD · " + escHtml(item.user?.name || "");
+    document.getElementById("stream-vinyl").classList.add("playing");
+    document.getElementById("player-wrap").innerHTML = `<iframe style="display:block;width:100%;aspect-ratio:16/9;border:none;" src="https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=0&autoplay=1&feed=${encodeURIComponent(item.key)}" allow="autoplay" allowfullscreen></iframe>`;
+  }
+
+  async function searchInternetArchive(q) {
+    showLoading("stream-results", "SEARCHING ARCHIVE...");
+    document.getElementById("stream-result-count").textContent = "";
+    try {
+      const query = encodeURIComponent('(' + q + ') AND mediatype:audio');
+      const res = await fetch(`https://archive.org/advancedsearch.php?q=${query}&fl[]=identifier,title,creator,description,year&output=json&rows=20&sort[]=downloads+desc`, {signal: AbortSignal.timeout(10000)});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderArchiveResults(data.response?.docs || []);
+    } catch(e) {
+      showEmpty("stream-results", "⚠️", "Internet Archive search failed.\n" + (e.message || "Check your connection."));
+    }
+  }
+  function renderArchiveResults(items) {
+    document.getElementById("stream-result-count").textContent = items.length + " results";
+    document.getElementById("results-title").textContent = "INTERNET ARCHIVE";
+    if (!items.length) { showEmpty("stream-results", "🔍", "No results found. Try a different search."); return; }
+    const list = document.createElement("div");
+    list.className = "tracks-list";
+    items.forEach((item, i) => {
+      const card = document.createElement("div");
+      card.className = "track-card"; card.id = "track-" + i;
+      card.innerHTML = `<div class="track-num">${i + 1}</div><div class="track-thumb">🏛</div><div class="track-details"><div class="track-title">${escHtml(item.title || item.identifier)}</div><div class="track-artist">${escHtml(item.creator || item.year || 'Internet Archive')}</div></div><span class="track-badge badge-ia">IA</span>`;
+      card.onclick = () => playArchive(item, i);
+      list.appendChild(card);
+    });
+    document.getElementById("stream-results").innerHTML = "";
+    document.getElementById("stream-results").appendChild(list);
+  }
+  function playArchive(item, index) {
+    document.querySelectorAll(".track-card").forEach(c => c.classList.remove("active-card"));
+    document.getElementById("track-" + index)?.classList.add("active-card");
+    document.getElementById("player-source-label").textContent = escHtml(item.title || item.identifier);
+    document.getElementById("np-name").textContent = item.title || item.identifier;
+    document.getElementById("np-source").textContent = "🏛 INTERNET ARCHIVE · " + escHtml(item.creator || item.year || "");
+    document.getElementById("stream-vinyl").classList.add("playing");
+    document.getElementById("player-wrap").innerHTML = `<iframe style="display:block;width:100%;aspect-ratio:16/9;border:none;" src="https://archive.org/embed/${encodeURIComponent(item.identifier)}?playlist=1&list_height=160" allow="autoplay" allowfullscreen></iframe>`;
+  }
+
+  function loadSoundCloud(q) {
+    const isSCUrl = /soundcloud\.com\/[^/]+(\/.+)?/.test(q);
+    document.getElementById("results-title").textContent = "SOUNDCLOUD";
+    document.getElementById("stream-result-count").textContent = "";
+    if (isSCUrl) {
+      const scUrl = q.startsWith("http") ? q : "https://" + q;
+      document.getElementById("player-source-label").textContent = "SoundCloud";
+      document.getElementById("np-name").textContent = "SoundCloud Player";
+      document.getElementById("np-source").textContent = "☁ SOUNDCLOUD EMBED";
+      document.getElementById("stream-vinyl").classList.add("playing");
+      document.getElementById("player-wrap").innerHTML = `<iframe style="display:block;width:100%;aspect-ratio:16/9;border:none;" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(scUrl)}&color=%23a7c080&auto_play=false&buying=false&sharing=false&show_artwork=true&show_comments=false&show_user=true&visual=true&hide_related=true" allow="autoplay"></iframe>`;
+      document.getElementById("stream-results").innerHTML = `<div class="empty-state"><div class="empty-icon">☁</div><div class="empty-text">SoundCloud track embedded in the player →</div></div>`;
+    } else {
+      const searchUrl = `https://soundcloud.com/search?q=${encodeURIComponent(q)}`;
+      if (q) window.open(searchUrl, "_blank", "noopener,noreferrer");
+      document.getElementById("stream-results").innerHTML = `<div class="empty-state"><div class="empty-icon">☁</div><div class="empty-text">${q ? 'Search for <strong style="color:var(--text);">"' + escHtml(q) + '"</strong> opened on SoundCloud.<br><br>To embed here, paste a direct SoundCloud URL<br><code style="color:var(--accent4);font-size:.75rem;">soundcloud.com/artist/track-name</code>' : "Paste a direct SoundCloud URL to embed,<br>or type a search term to open SoundCloud."}</div>${q ? '<br><a href="' + escHtml(searchUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:4px;padding:9px 20px;background:var(--orange);color:var(--bg);border-radius:6px;font-family:Space Mono,monospace;font-size:.72rem;text-decoration:none;letter-spacing:1px;font-weight:700;">OPEN ON SOUNDCLOUD ↗</a>' : ""}</div>`;
+    }
+  }
+
+  // ── UTILITIES ──────────────────────────────────────────────────────────────
+  function radioTagClick(el, tag) {
+    activeRadioTag = tag;
+    document.querySelectorAll('#radio-tags .tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active'); searchRadio(tag);
+  }
+  function getFlagEmoji(cc) {
+    if (!cc || cc.length !== 2) return '🌍';
+    return String.fromCodePoint(...[...cc.toUpperCase()].map(c => c.charCodeAt(0) + 127397));
+  }
+  function escHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function showLoading(id, text) {
+    document.getElementById(id).innerHTML = `<div class="loading"><div class="loading-wave"><span></span><span></span><span></span><span></span><span></span></div><div class="loading-text">${text}</div></div>`;
+  }
+  function showEmpty(id, icon, text) {
+    document.getElementById(id).innerHTML = `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text.replace(/\n/g, '<br>')}</div></div>`;
+  }
+  let toastTimer;
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  setupLocalFileInputs();
+  initRadioServers().then(() => searchRadio());
+</script>
+</body>
+</html>
