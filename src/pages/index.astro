@@ -1,7 +1,7 @@
 ---
 ---
 
-<html lang="en" data-theme="wavelength">
+<html lang="en" data-theme="everforest">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +15,7 @@
       font-style: normal;
     }
     /* ── THEMES ─────────────────────────────────────────────────────── */
-    html[data-theme="wavelength"] {
+    html[data-theme="everforest"] {
       --bg: #141c2a; --surface: #1d283a; --surface2: #2f394a; --border: #323846;
       --accent: #c9e79a; --accent2: #82AAFF; --accent3: #09b2ad; --accent4: #cc9fe9;
       --text: #f8fafc; --muted: #94a3b8; --glow: rgba(201,231,154,0.25);
@@ -24,7 +24,7 @@
       --vinyl-c1:#141c2a; --vinyl-c2:#1d283a; --vinyl-c3:#2f394a;
       --bar-bg: rgba(20,28,42,.97);
     }
-    html[data-theme="everforest"] {
+    html[data-theme="BOLE-DARK"] {
       --bg: #2d363b; --surface: #343f44; --surface2: #3d484d; --border: #56635f;
       --accent: #a7c080; --accent2: #83c092; --accent3: #dbbc7f;
       --accent4: #d699b6; --accent5: #7fbbb3;
@@ -256,7 +256,7 @@
   <header>
     <div class="logo">CLOUD<span>WAVES</span></div>
     <div class="header-right">
-      <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()">🎨 EVERFOREST</button>
+      <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()">🎨 BOLE-DARK</button>
       <div class="live-badge"><div class="live-dot"></div>MUSIC PLAYER</div>
     </div>
   </header>
@@ -460,10 +460,10 @@
   // ── THEME TOGGLE ───────────────────────────────────────────────────────────
   function toggleTheme() {
     const html = document.documentElement;
-    const next = html.getAttribute('data-theme') === 'wavelength' ? 'everforest' : 'wavelength';
+    const next = html.getAttribute('data-theme') === 'everforest' ? 'BOLE-DARK' : 'everforest';
     html.setAttribute('data-theme', next);
     document.getElementById('theme-toggle').textContent =
-      next === 'wavelength' ? '🎨 EVERFOREST' : '🎨 WAVELENGTH';
+      next === 'everforest' ? '🎨 BOLE-DARK' : '🎨 EVERFOREST';
   }
 
   // ── TAB SWITCHING ──────────────────────────────────────────────────────────
