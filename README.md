@@ -1,10 +1,10 @@
-# Astro Starter Kit: Basics
+# ArchBoki Player — CloudWaves
 
-```sh
-npm create astro@latest -- --template basics
-```
+A web-based music player built with Astro that lets you search and stream tracks from YouTube, Mixcloud, and Internet Archive, play local audio files, and listen to curated radio stations — all in one place.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+![Screenshot 1](public/images/cloudwaves-1.PNG)
+![Screenshot 2](public/images/cloudwaves-2.PNG)
+![Screenshot 3](public/images/cloudwaves-3.PNG)
 
 ## 🚀 Project Structure
 
@@ -41,6 +41,7 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
+
+## �👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
